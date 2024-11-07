@@ -1,8 +1,10 @@
-import { LogOut, SquarePen } from 'lucide-react'
+import { Grid3x3, LogOut, SquarePen } from 'lucide-react'
+
+import { Button } from '@/components/button'
 
 export function Profile() {
   return (
-    <div className="px-16 py-8 space-y-4">
+    <div className="w-full px-16 py-8 space-y-4">
       <div className="flex items-center gap-4">
         <div className="bg-zinc-400 size-28 rounded-full border-4 border-green-700" />
 
@@ -12,18 +14,26 @@ export function Profile() {
         </div>
       </div>
 
-      {/* <p className="text-zinc-300 text-sm ">23 publicações</p> */}
-
       <div className="flex items-center gap-2">
-        <button className="flex items-center gap-2 bg-zinc-900 text-zinc-300 text-sm py-3 px-4 rounded-md transition-opacity hover:opacity-75">
+        <Button>
           <SquarePen className="size-4" />
           Editar perfil
-        </button>
+        </Button>
 
-        <button className="flex items-center gap-2 bg-zinc-900 text-zinc-300 text-sm py-3 px-4 rounded-md transition-opacity hover:opacity-75">
+        <Button>
           <LogOut className="size-4" />
           sair
+        </Button>
+
+        <Button>Configurações</Button>
+      </div>
+
+      <div className="space-y-1">
+        <button className="text-xs text-zinc-400 flex gap-1 items-center rounded-md p-2 transition-colors hover:bg-zinc-700">
+          <Grid3x3 className="size-3" />
+          PUBLICAÇÕES
         </button>
+        <div className="border-t border-zinc-700 w-full"></div>
       </div>
     </div>
   )
