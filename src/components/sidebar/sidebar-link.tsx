@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 interface SidebarLinkProps {
@@ -12,18 +12,7 @@ export function SidebarLink({ href, children }: SidebarLinkProps) {
   return (
     <button
       onClick={() => navigate(href)}
-      className="
-      w-full
-      flex 
-      items-center 
-      gap-3 
-      text-zinc-300 
-      cursor-pointer 
-      rounded-md 
-      p-4 
-      hover:bg-zinc-800 
-      transition-colors
-      "
+      className="w-full flex items-center gap-3 text-zinc-300 cursor-pointer rounded-md p-4 hover:bg-zinc-800 transition-colors"
     >
       {children}
     </button>

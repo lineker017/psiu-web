@@ -1,4 +1,11 @@
-import { Bell, Compass, House, MessageCircleMore, Search } from 'lucide-react'
+import {
+  Bell,
+  CirclePlus,
+  Compass,
+  House,
+  MessageCircleMore,
+  Search,
+} from 'lucide-react'
 
 import { SidebarLink } from './sidebar-link'
 
@@ -11,7 +18,7 @@ export function Sidebar() {
         </div>
 
         <nav className="space-y-2">
-          <SidebarLink href="/feed">
+          <SidebarLink href="/">
             <House />
             Página inicial
           </SidebarLink>
@@ -34,6 +41,11 @@ export function Sidebar() {
           <SidebarLink href="/">
             <Bell />
             Notificações
+          </SidebarLink>
+
+          <SidebarLink href="/">
+            <CirclePlus />
+            Criar
           </SidebarLink>
         </nav>
       </div>
