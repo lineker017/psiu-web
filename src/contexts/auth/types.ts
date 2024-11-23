@@ -10,5 +10,5 @@ export interface AuthContextType {
   signed: boolean
   student: Student | null
   handleStudent(student: Student): void
-  sigOut(): void
+  signOut(): void
 }

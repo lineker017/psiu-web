@@ -17,7 +17,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     [setStudent],
   )
 
-  const sigOut = () => {
+  const signOut = () => {
     setStudent(null)
   }
 
@@ -27,7 +27,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         signed: !!student,
         student,
         handleStudent,
-        sigOut,
+        signOut,
       }}
     >
       {children}
