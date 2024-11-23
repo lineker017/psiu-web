@@ -1,19 +1,28 @@
 import { Grid3x3, LogOut, SquarePen } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
+import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/button'
+import { useAuth } from '@/contexts/auth'
 
 export function Profile() {
   const navigate = useNavigate()
+  const { sigOut } = useAuth()
+
+  const avatar = 'https://api.dicebear.com/9.x/adventurer/svg?seed=natanfoleto'
 
   return (
     <div className="w-full px-16 py-8 space-y-8">
       <div className="flex items-center gap-4">
-        <div className="bg-zinc-400 size-28 rounded-full" />
+        <Avatar
+          src={avatar}
+          name="Natan Foleto"
+          className="size-28 bg-zinc-200 text-zinc-800 text-5xl font-medium"
+        />
 
         <div>
-          <h1 className="text-zinc-200 font-medium">Lineker Peron</h1>
-          <p className="text-zinc-400 text-sm">RA109951092</p>
+          <h1 className="text-zinc-200 font-medium">Natan Foleto</h1>
+          <p className="text-zinc-400 text-sm">RA2017193635</p>
         </div>
       </div>
 
@@ -24,7 +33,7 @@ export function Profile() {
         </Button>
 
         <Button onClick={() => navigate('/sign-in')} className="bg-zinc-900">
-          <LogOut className="size-4 mr-2" />
+          <LogOut onClick={sigOut} className="size-4 mr-2" />
           Sair
         </Button>
       </div>
