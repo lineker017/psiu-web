@@ -1,8 +1,11 @@
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { HTTPError } from 'ky'
 import { Bookmark, Ellipsis, MessageCircle, X } from 'lucide-react'
 import { type FormEvent, useRef, useState } from 'react'
+import { toast } from 'sonner'
 
+import { createComment } from '@/http/coments/create-comment'
 import { IPost } from '@/http/posts/types'
 
 import { Avatar } from '../avatar'
@@ -37,8 +40,28 @@ export function PostPreview({
     setModalOptions(!modalOptions)
   }
 
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault()
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+
+    try {
+      const { result, message } = await createComment({
+        content: comment,
+        postId: post.id,
+      })
+
+      if (result === 'success') {
+        setComment('')
+        toast.success(message)
+      }
+    } catch (error) {
+      console.log(error)
+
+      if (error instanceof HTTPError) {
+        const { message } = await error.response.json()
+
+        toast.error(message)
+      }
+    }
   }
 
   return (

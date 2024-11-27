@@ -16,7 +16,7 @@ export function SignInForm() {
   const [ra, setRa] = useState('')
   const [password, setPassword] = useState('')
 
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
   function handleShowPassword() {
