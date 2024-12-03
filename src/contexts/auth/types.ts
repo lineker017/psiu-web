@@ -1,6 +1,6 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
-import { Student } from '@/http/auth/authenticate-with-password'
+import type { Student } from '@/http/auth/authenticate-with-password'
 
 export interface AuthProviderProps {
   children: ReactNode

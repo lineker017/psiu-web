@@ -3,8 +3,10 @@ import { ptBR } from 'date-fns/locale'
 import { Bookmark, Ellipsis, MessageCircle } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { REACTION_LIST } from '@/constants/reactions'
 import { TAILWIND_COLORS } from '@/constants/tailwind-colors'
-import { IPost } from '@/http/posts/get-posts'
+import { usePost } from '@/contexts/post'
+import type { IPost } from '@/http/posts/types'
 import { getRandomAdjective } from '@/utils/get-random-adjective'
 
 import { Avatar } from '../avatar'
@@ -17,8 +19,10 @@ export interface PostProps {
 }
 
 export function Post({
-  post: { id, content, publishedAt, updatedAt, comments, reactions },
+  post: { id, isOwner, content, publishedAt, updatedAt, comments, reactions },
 }: PostProps) {
+  const { onDeletePostReaction } = usePost()
+
   const [modalPreview, setModalPreview] = useState(false)
   const [modalOptions, setModalOptions] = useState(false)
 
@@ -40,6 +44,12 @@ export function Post({
     () => `https://api.dicebear.com/9.x/adventurer/svg?seed=${adjective}`,
     [adjective],
   )
+
+  const reaction = reactions.find((reaction) => reaction.isOwner)
+
+  async function handleDeleteReaction(reactionId: string) {
+    await onDeletePostReaction({ reactionId })
+  }
 
   return (
     <div>
@@ -68,14 +78,24 @@ export function Post({
         </div>
 
         <div
-          className={`w-full min-h-32 rounded-md p-4 ${colors.bg_color} pink`}
+          className={`relative w-full min-h-32 rounded-md p-4 ${colors.bg_color} pink`}
         >
           <p className={`text-sm ${colors.text_color}`}>{content}</p>
+
+          {reaction && (
+            <button
+              onClick={() => handleDeleteReaction(reaction.id)}
+              title={`Você reagiu com: ${REACTION_LIST[reaction.type].label}`}
+              className="absolute top-1/2 -translate-y-1/2 -right-7"
+            >
+              {REACTION_LIST[reaction.type].icon}
+            </button>
+          )}
         </div>
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-zinc-400">
-            <Reaction className="size-5" />
+            <Reaction postId={id} className="size-5" />
 
             <MessageCircle
               onClick={handleModalPreview}
@@ -88,7 +108,16 @@ export function Post({
       </div>
 
       <PostPreview
-        post={{ id, content, publishedAt, updatedAt, comments, reactions }}
+        post={{
+          id,
+          isOwner,
+          content,
+          publishedAt,
+          updatedAt,
+          comments,
+          reactions,
+        }}
+        reaction={reaction}
         user={{ name: adjective, avatar }}
         backgroundColor={colors.bg_color}
         open={modalPreview}

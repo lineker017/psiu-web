@@ -1,16 +1,16 @@
 import { api } from '../api-client'
 
-interface CreateCommentRequest {
-  content: string
+export interface CreateCommentRequest {
   postId: string
+  content: string
 }
 
-interface CreateCommentResponse {
+export interface CreateCommentResponse {
   result: 'success' | 'error'
   message?: string
 }
 
-export async function createComment({ content, postId }: CreateCommentRequest) {
+export async function createComment({ postId, content }: CreateCommentRequest) {
   const response = await api
     .post(`comment/${postId}`, {
       json: {

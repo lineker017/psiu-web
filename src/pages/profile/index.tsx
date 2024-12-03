@@ -5,7 +5,7 @@ import { Button } from '@/components/button'
 import { useAuth } from '@/contexts/auth'
 
 export function Profile() {
-  const { signOut, student } = useAuth()
+  const { student, signOut } = useAuth()
 
   const avatar = 'https://api.dicebear.com/9.x/adventurer/svg?seed=natanfoleto'
 
@@ -14,7 +14,7 @@ export function Profile() {
       <div className="flex items-center gap-4">
         <Avatar
           src={avatar}
-          name="lineker Peron"
+          name="Natan Foleto"
           className="size-28 bg-zinc-200 text-zinc-800 text-5xl font-medium"
         />
 

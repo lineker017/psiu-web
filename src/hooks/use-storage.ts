@@ -1,6 +1,6 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react'
 
-type Response<t> = [t, Dispatch<SetStateAction<t>>]
+type Response<T> = [T, Dispatch<SetStateAction<T>>]
 
 const useStorage = <T>(key: string, initialState: T): Response<T> => {
   const [state, setState] = useState<T>(() => {

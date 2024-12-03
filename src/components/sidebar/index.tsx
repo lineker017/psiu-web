@@ -13,8 +13,9 @@ import { Avatar } from '../avatar'
 import { SidebarLink } from './sidebar-link'
 
 export function Sidebar() {
-  const avatar = 'https://api.dicebear.com/9.x/adventurer/svg?seed=natanfoleto'
   const { student } = useAuth()
+
+  const avatar = 'https://api.dicebear.com/9.x/adventurer/svg?seed=natanfoleto'
 
   return (
     <div className="h-screen w-80 flex flex-col justify-between bg-zinc-900 px-6 py-8">
@@ -64,7 +65,8 @@ export function Sidebar() {
             className="size-8 bg-zinc-200"
             onError={(e) => console.log(e)}
           />
-          {student?.name || 'perfil'}
+
+          {student?.name || 'Perfil'}
         </SidebarLink>
       </div>
     </div>

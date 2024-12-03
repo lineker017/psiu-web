@@ -5,8 +5,10 @@ import { Bookmark, Ellipsis, MessageCircle, X } from 'lucide-react'
 import { type FormEvent, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
-import { createComment } from '@/http/coments/create-comment'
-import { IPost } from '@/http/posts/types'
+import { REACTION_LIST } from '@/constants/reactions'
+import { usePost } from '@/contexts/post'
+import type { IPost } from '@/http/posts/types'
+import type { IReactionPost } from '@/http/reactions/types'
 
 import { Avatar } from '../avatar'
 import { Comment } from './comment'
@@ -15,6 +17,7 @@ import { Reaction } from './reaction'
 
 interface PostPreviewProps {
   post: IPost
+  reaction?: IReactionPost
   user?: {
     name: string
     avatar: string
@@ -26,11 +29,14 @@ interface PostPreviewProps {
 
 export function PostPreview({
   post,
+  reaction,
   user,
   backgroundColor,
   open,
   setOpen,
 }: PostPreviewProps) {
+  const { onCreateComment, onDeletePostReaction } = usePost()
+
   const [comment, setComment] = useState('')
   const [modalOptions, setModalOptions] = useState(false)
 
@@ -40,19 +46,16 @@ export function PostPreview({
     setModalOptions(!modalOptions)
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
 
     try {
-      const { result, message } = await createComment({
-        content: comment,
+      const { result } = await onCreateComment({
         postId: post.id,
+        content: comment,
       })
 
-      if (result === 'success') {
-        setComment('')
-        toast.success(message)
-      }
+      if (result === 'success') setComment('')
     } catch (error) {
       console.log(error)
 
@@ -62,6 +65,10 @@ export function PostPreview({
         toast.error(message)
       }
     }
+  }
+
+  async function handleDeleteReaction(reactionId: string) {
+    await onDeletePostReaction({ reactionId })
   }
 
   return (
@@ -79,8 +86,20 @@ export function PostPreview({
           onClick={(e) => e.stopPropagation()}
           className="w-[1280px] grid grid-cols-12 rounded-lg bg-zinc-800"
         >
-          <div className="col-span-7 flex justify-center items-center p-6">
-            <p className="text-zinc-300 text-center">{post.content}</p>
+          <div className="relative col-span-7 flex justify-center items-center overflow-hidden px-8 pt-8 pb-20">
+            <p className="flex items-center justify-center text-zinc-300 overflow-y-auto h-full">
+              {post.content}
+            </p>
+
+            {reaction && (
+              <button
+                onClick={() => handleDeleteReaction(reaction.id)}
+                title="Clique para remover sua reação"
+                className="absolute left-1/2 -translate-x-1/2 bottom-7 text-zinc-400 text-sm"
+              >
+                Você reagiu com {REACTION_LIST[reaction.type].icon}
+              </button>
+            )}
           </div>
 
           <div className="flex flex-col col-span-5 bg-zinc-950 rounded-r-lg">
@@ -120,6 +139,7 @@ export function PostPreview({
                   key={comment.id}
                   comment={{
                     id: comment.id,
+                    isOwner: comment.isOwner,
                     postId: comment.postId,
                     content: comment.content,
                     commentedAt: comment.commentedAt,
@@ -130,10 +150,10 @@ export function PostPreview({
               ))}
             </div>
 
-            <div className="border-b-[1px] p-4 border-zinc-900">
-              <div className="flex items-center justify-between ">
+            <div className="border-b-[1px] border-zinc-900 p-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-zinc-400">
-                  <Reaction className="size-5" />
+                  <Reaction postId={post.id} className="size-5" />
 
                   <MessageCircle
                     onClick={() => inputRef.current?.focus()}
@@ -144,7 +164,7 @@ export function PostPreview({
                 <Bookmark className="size-5 text-zinc-400 cursor-pointer transition-opacity hover:opacity-50" />
               </div>
 
-              <p className="text-xs text-zinc-400 hover:underline cursor-pointer">
+              <p className="text-xs text-zinc-400 cursor-pointer hover:underline">
                 <strong>{post.reactions.length}</strong> pessoas reagiram essa
                 publicação
               </p>

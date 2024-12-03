@@ -1,12 +1,27 @@
+import { HTTPError } from 'ky'
 import { Heart } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
+
+import { REACTION_LIST } from '@/constants/reactions'
+import { usePost } from '@/contexts/post'
+import { EnumTypeReaction } from '@/http/reactions/types'
 
 interface ReactionProps {
   className?: string
   position?: 'top' | 'left'
+  postId?: string
+  commentId?: string
 }
 
-export function Reaction({ className = '', position = 'top' }: ReactionProps) {
+export function Reaction({
+  className = '',
+  position = 'top',
+  postId,
+  commentId,
+}: ReactionProps) {
+  const { onCreateCommentReaction, onCreatePostReaction } = usePost()
+
   const [open, setOpen] = useState(false)
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -29,8 +44,7 @@ export function Reaction({ className = '', position = 'top' }: ReactionProps) {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
-
-      // Configura o timeout para abrir o modal após 500ms
+      // Configura o timeout para  o modal após 500ms
       timeoutRef.current = setTimeout(() => {
         handleOpen()
       }, 250)
@@ -51,6 +65,33 @@ export function Reaction({ className = '', position = 'top' }: ReactionProps) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [])
+
+  async function handleReact(type: EnumTypeReaction) {
+    try {
+      if (postId) {
+        const { result } = await onCreatePostReaction({
+          postId,
+          type,
+        })
+
+        if (result === 'success') handleClose()
+      }
+
+      if (commentId) {
+        const { result } = await onCreateCommentReaction({ commentId, type })
+
+        if (result === 'success') handleClose()
+      }
+    } catch (error) {
+      console.log(error)
+
+      if (error instanceof HTTPError) {
+        const { message } = await error.response.json()
+
+        toast.error(message)
+      }
+    }
+  }
 
   return (
     <div
@@ -73,26 +114,45 @@ export function Reaction({ className = '', position = 'top' }: ReactionProps) {
             rounded-md 
             p-2
             bg-zinc-700
-            
           `}
         >
-          <button onClick={handleClose} className="hover:scale-[132.5%]">
+          <button
+            onClick={() => handleReact(EnumTypeReaction.APOIO)}
+            title={REACTION_LIST[EnumTypeReaction.APOIO].label}
+            className="hover:scale-[132.5%]"
+          >
             ❤️
           </button>
 
-          <button onClick={handleClose} className="hover:scale-[132.5%]">
-            🙏
+          <button
+            onClick={() => handleReact(EnumTypeReaction.ENTENDO_VOCE)}
+            title={REACTION_LIST[EnumTypeReaction.ENTENDO_VOCE].label}
+            className="hover:scale-[132.5%]"
+          >
+            🙌
           </button>
 
-          <button onClick={handleClose} className="hover:scale-[132.5%]">
+          <button
+            onClick={() => handleReact(EnumTypeReaction.FORCA)}
+            title={REACTION_LIST[EnumTypeReaction.FORCA].label}
+            className="hover:scale-[132.5%]"
+          >
             💪
           </button>
 
-          <button onClick={handleClose} className="hover:scale-[132.5%]">
+          <button
+            onClick={() => handleReact(EnumTypeReaction.TRISTEZA)}
+            title={REACTION_LIST[EnumTypeReaction.TRISTEZA].label}
+            className="hover:scale-[132.5%]"
+          >
             😢
           </button>
 
-          <button onClick={handleClose} className="hover:scale-[132.5%]">
+          <button
+            onClick={() => handleReact(EnumTypeReaction.ESTAMOS_JUNTOS)}
+            title={REACTION_LIST[EnumTypeReaction.ESTAMOS_JUNTOS].label}
+            className="hover:scale-[132.5%]"
+          >
             🤝
           </button>
         </div>
