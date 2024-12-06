@@ -10,6 +10,7 @@ import { getRandomAdjective } from '@/utils/get-random-adjective'
 
 import { Avatar } from '../avatar'
 import { Reaction } from './reaction'
+import { ReactionList } from './reaction-list'
 
 export interface CommentProps {
   comment: IComment
@@ -20,6 +21,7 @@ export function Comment({
 }: CommentProps) {
   const { onDeleteCommentReaction } = usePost()
 
+  const [modalReactionList, setModalReactionList] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
 
@@ -27,6 +29,10 @@ export function Comment({
 
   function handleToggleExpanded() {
     setIsExpanded(!isExpanded)
+  }
+
+  function handleModalReactionList() {
+    setModalReactionList(!modalReactionList)
   }
 
   useEffect(() => {
@@ -104,7 +110,10 @@ export function Comment({
               {updatedAt && '(editado)'}
             </time>
 
-            <span className="cursor-pointer transition-colors hover:text-zinc-300">
+            <span
+              onClick={reactions.length ? handleModalReactionList : undefined}
+              className="cursor-pointer transition-colors hover:text-zinc-300"
+            >
               {reactions.length} reações
             </span>
           </div>
@@ -115,6 +124,12 @@ export function Comment({
         commentId={id}
         position="left"
         className="size-4 text-zinc-400"
+      />
+
+      <ReactionList
+        open={modalReactionList}
+        setOpen={handleModalReactionList}
+        reactions={reactions}
       />
     </div>
   )
