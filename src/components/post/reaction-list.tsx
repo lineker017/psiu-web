@@ -82,7 +82,7 @@ export function ReactionList({ open, setOpen, reactions }: ReactionListProps) {
               <X className="size-5 text-zinc-200" />
             </button>
           </div>
-          <div className="p-4 w-[500px] overflow-auto text-zinc-200 space-y-4">
+          <div className="p-4 h-[84vh] overflow-auto text-zinc-200 space-y-4">
             {reactionsByTab.map((reaction) => {
               const colors =
                 TAILWIND_COLORS[Math.floor(Math.random() * TAILWIND_COLORS.length)]
