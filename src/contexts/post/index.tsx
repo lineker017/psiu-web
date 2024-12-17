@@ -12,6 +12,11 @@ import {
   type CreateCommentResponse,
 } from '@/http/comments/create-comment'
 import {
+  deleteComment,
+  type DeleteCommentRequest,
+  type DeleteCommentResponse,
+} from '@/http/comments/delete-comment'
+import {
   createPost,
   type CreatePostRequest,
   type CreatePostResponse,
@@ -22,6 +27,7 @@ import {
   type DeletePostResponse,
 } from '@/http/posts/delete-post'
 import { getPosts } from '@/http/posts/get-posts'
+import { getPostsByStudent } from '@/http/posts/get-posts-by-student'
 import type { IPost } from '@/http/posts/types'
 import {
   createCommentReaction,
@@ -37,19 +43,23 @@ import {
   deleteCommentReaction,
   type DeleteCommentReactionRequest,
   type DeleteCommentReactionResponse,
-} from '@/http/reactions/delete-comment-reaction '
+} from '@/http/reactions/delete-comment-reaction'
 import {
   deletePostReaction,
   type DeletePostReactionRequest,
   type DeletePostReactionResponse,
 } from '@/http/reactions/delete-post-reaction'
 
+import { useAuth } from '../auth'
 import type { PostContextType, PostProviderProps } from './types'
 
 const PostContext = createContext<PostContextType>({} as PostContextType)
 
 const PostProvider = ({ children }: PostProviderProps) => {
+  const { student } = useAuth()
+
   const [posts, setPosts] = useState<IPost[]>([])
+  const [postsByStudent, setPostsByStudent] = useState<IPost[]>([])
 
   const fetchPosts = useCallback(async () => {
     const { result, data } = await getPosts()
@@ -59,9 +69,22 @@ const PostProvider = ({ children }: PostProviderProps) => {
     }
   }, [])
 
+  const fetchPostsByStudent = useCallback(async () => {
+    if (student) {
+      const { result, data } = await getPostsByStudent({
+        studentId: student.id,
+      })
+
+      if (result === 'success') {
+        if (data) setPostsByStudent(data)
+      }
+    }
+  }, [student])
+
   useEffect(() => {
     fetchPosts()
-  }, [fetchPosts])
+    fetchPostsByStudent()
+  }, [fetchPosts, fetchPostsByStudent])
 
   const onCreatePost = useCallback(
     async ({ content }: CreatePostRequest): Promise<CreatePostResponse> => {
@@ -95,6 +118,21 @@ const PostProvider = ({ children }: PostProviderProps) => {
       content,
     }: CreateCommentRequest): Promise<CreateCommentResponse> => {
       const { result, message } = await createComment({ postId, content })
+
+      if (result === 'success') {
+        await fetchPosts()
+      }
+
+      return { result, message }
+    },
+    [fetchPosts],
+  )
+
+  const onDeleteComment = useCallback(
+    async ({
+      commentId,
+    }: DeleteCommentRequest): Promise<DeleteCommentResponse> => {
+      const { result, message } = await deleteComment({ commentId })
 
       if (result === 'success') {
         await fetchPosts()
@@ -174,9 +212,11 @@ const PostProvider = ({ children }: PostProviderProps) => {
     <PostContext.Provider
       value={{
         posts,
+        postsByStudent,
         onCreatePost,
         onDeletePost,
         onCreateComment,
+        onDeleteComment,
         onCreatePostReaction,
         onDeletePostReaction,
         onCreateCommentReaction,

@@ -1,19 +1,27 @@
 import { HTTPError } from 'ky'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import { usePost } from '@/contexts/post'
 
-import { ButtonOption } from './button-option'
+import { ButtonOption } from '../button-option'
+import { ModalConfirm } from '../modal/modal-confirm'
 
 interface OptionsProps {
+  postId: string
+  isOwner: boolean
   open: boolean
   setOpen(): void
-  isOwner: boolean
-  postId: string
 }
 
 export function Options({ postId, isOwner, open, setOpen }: OptionsProps) {
   const { onDeletePost } = usePost()
+
+  const [modalConfirmDeletePost, setModalConfirmDeletePost] = useState(false)
+
+  function handleModalConfirmDeletePost() {
+    setModalConfirmDeletePost(!modalConfirmDeletePost)
+  }
 
   async function handleDeletePost() {
     try {
@@ -44,7 +52,7 @@ export function Options({ postId, isOwner, open, setOpen }: OptionsProps) {
           {isOwner ? (
             <ButtonOption
               className="text-red-500 font-medium"
-              onClick={handleDeletePost}
+              onClick={handleModalConfirmDeletePost}
             >
               Excluir
             </ButtonOption>
@@ -92,6 +100,14 @@ export function Options({ postId, isOwner, open, setOpen }: OptionsProps) {
             Cancelar
           </ButtonOption>
         </div>
+
+        <ModalConfirm
+          title="Excluir publicação?"
+          description="Tem certeza de que deseja excluir essa publicação?"
+          onConfirm={handleDeletePost}
+          open={modalConfirmDeletePost}
+          setOpen={handleModalConfirmDeletePost}
+        />
       </div>
     )
   )

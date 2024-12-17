@@ -5,6 +5,10 @@ import type {
   CreateCommentResponse,
 } from '@/http/comments/create-comment'
 import type {
+  DeleteCommentRequest,
+  DeleteCommentResponse,
+} from '@/http/comments/delete-comment'
+import type {
   CreatePostRequest,
   CreatePostResponse,
 } from '@/http/posts/create-post'
@@ -24,7 +28,7 @@ import type {
 import type {
   DeleteCommentReactionRequest,
   DeleteCommentReactionResponse,
-} from '@/http/reactions/delete-comment-reaction '
+} from '@/http/reactions/delete-comment-reaction'
 import type {
   DeletePostReactionRequest,
   DeletePostReactionResponse,
@@ -36,9 +40,11 @@ export interface PostProviderProps {
 
 export interface PostContextType {
   posts: IPost[]
+  postsByStudent: IPost[]
   onCreatePost(post: CreatePostRequest): Promise<CreatePostResponse>
   onDeletePost(post: DeletePostRequest): Promise<DeletePostResponse>
   onCreateComment(comment: CreateCommentRequest): Promise<CreateCommentResponse>
+  onDeleteComment(comment: DeleteCommentRequest): Promise<DeleteCommentResponse>
   onCreatePostReaction(
     reaction: CreatePostReactionRequest,
   ): Promise<CreatePostReactionResponse>
@@ -48,7 +54,6 @@ export interface PostContextType {
   onCreateCommentReaction(
     reaction: CreateCommentReactionRequest,
   ): Promise<CreateCommentReactionResponse>
-
   onDeleteCommentReaction(
     reaction: DeleteCommentReactionRequest,
   ): Promise<DeleteCommentReactionResponse>

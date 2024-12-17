@@ -20,7 +20,7 @@ export function Reaction({
   postId,
   commentId,
 }: ReactionProps) {
-  const { onCreateCommentReaction, onCreatePostReaction } = usePost()
+  const { onCreatePostReaction, onCreateCommentReaction } = usePost()
 
   const [open, setOpen] = useState(false)
 
@@ -44,7 +44,8 @@ export function Reaction({
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
-      // Configura o timeout para  o modal após 500ms
+
+      // Configura o timeout para abrir o modal após 500ms
       timeoutRef.current = setTimeout(() => {
         handleOpen()
       }, 250)
