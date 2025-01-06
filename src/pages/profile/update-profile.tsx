@@ -1,8 +1,11 @@
+import { HTTPError } from 'ky'
 import { Eye, EyeOff, X } from 'lucide-react'
-import { useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { useAuth } from '@/contexts/auth'
 
 interface UpdateProfileProps {
   open: boolean
@@ -10,11 +13,89 @@ interface UpdateProfileProps {
 }
 
 export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
+  const { student, onUpdateStudent, onUpdatePassword } = useAuth()
+
+  const [name, setName] = useState(student?.name || '')
+  const [birthdate, setBirthdate] = useState(student?.birthdate || '')
+  const [password, setPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+
   const [showPassword, setShowPassword] = useState(false)
 
   function handleShowPassword() {
     setShowPassword(!showPassword)
   }
+
+  async function handleSubmitStudent(event: FormEvent) {
+    event.preventDefault()
+
+    try {
+      const { result, message } = await onUpdateStudent({
+        name,
+        birthdate,
+      })
+
+      if (result === 'success') {
+        toast.success(message)
+      }
+    } catch (error) {
+      console.log(error)
+
+      if (error instanceof HTTPError) {
+        const { message } = await error.response.json()
+
+        toast.error(message)
+      }
+    }
+  }
+
+  async function handleSubmitPassword(event: FormEvent) {
+    event.preventDefault()
+
+    try {
+      const { result, message } = await onUpdatePassword({
+        password,
+        newPassword,
+        confirmNewPassword,
+      })
+
+      if (result === 'success') {
+        toast.success(message)
+      }
+    } catch (error) {
+      console.log(error)
+
+      if (error instanceof HTTPError) {
+        const { message } = await error.response.json()
+
+        toast.error(message)
+      }
+    }
+  }
+
+  const handleEsc = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        event.stopPropagation()
+        setOpen()
+      }
+    },
+    [open, setOpen],
+  )
+
+  useEffect(() => {
+    if (open) document.addEventListener('keydown', handleEsc)
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+    }
+  }, [open, handleEsc])
+
+  const studentIsDirty =
+    student && (student.name !== name || student.birthdate !== birthdate)
+
+  const passwordIsDirty = password && newPassword && confirmNewPassword
 
   return (
     open && (
@@ -24,7 +105,7 @@ export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="relative p-6 w-1/2 rounded-lg bg-zinc-800"
+          className="relative w-1/2 rounded-lg bg-zinc-800 p-6"
         >
           <X
             onClick={setOpen}
@@ -34,51 +115,69 @@ export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
           <h1 className="text-zinc-300 text-xl font-semibold">Editar perfil</h1>
 
           <div className="h-full flex flex-col justify-between py-8">
-            <form className="space-y-4">
-              <h2 className="text-zinc-300 font-normal">Informações basicas</h2>
+            <form onSubmit={handleSubmitStudent} className="space-y-4">
+              <h2 className="text-zinc-300 font-normal">Informações básicas</h2>
 
               <div className="flex flex-col gap-1">
                 <label
                   htmlFor="name"
-                  className="text-sm text-zinc-400 font-medium"
+                  className="text-zinc-400 font-medium text-sm"
                 >
                   Nome
                 </label>
 
-                <Input id="name" />
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
 
               <div className="flex flex-col gap-1">
                 <label
                   htmlFor="birthdate"
-                  className="text-sm text-zinc-400 font-medium"
+                  className="text-zinc-400 font-medium text-sm"
                 >
                   Data de nascimento
                 </label>
 
-                <Input type="date" id="birthdate" />
+                <Input
+                  id="birthdate"
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                />
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button className="bg-yellow-500 text-zinc-950">Salvar</Button>
+                <Button
+                  type="submit"
+                  disabled={!studentIsDirty}
+                  className="bg-yellow-500 text-zinc-950 disabled:bg-zinc-600"
+                >
+                  Salvar
+                </Button>
               </div>
             </form>
-            <form className="space-y-4">
+
+            <form onSubmit={handleSubmitPassword} className="space-y-4">
               <h2 className="text-zinc-300 font-normal">Trocar senha</h2>
 
               <div className="flex flex-col gap-1">
                 <label
                   htmlFor="password"
-                  className="text-sm text-zinc-400 font-medium"
+                  className="text-zinc-400 font-medium text-sm"
                 >
                   Senha atual
                 </label>
 
                 <div className="relative">
                   <Input
-                    className="w-full"
-                    type={showPassword ? 'text' : 'password'}
                     id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full"
                   />
 
                   {showPassword ? (
@@ -98,16 +197,18 @@ export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
               <div className="flex flex-col gap-1">
                 <label
                   htmlFor="new_password"
-                  className="text-sm text-zinc-400 font-medium"
+                  className="text-zinc-400 font-medium text-sm"
                 >
                   Nova senha
                 </label>
 
                 <div className="relative">
                   <Input
-                    className="w-full"
-                    type={showPassword ? 'text' : 'password'}
                     id="new_password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full"
                   />
 
                   {showPassword ? (
@@ -126,16 +227,19 @@ export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
 
               <div className="flex flex-col gap-1">
                 <label
-                  htmlFor="confirm_password"
-                  className="text-sm text-zinc-400 font-medium"
+                  htmlFor="confirm_new_password"
+                  className="text-zinc-400 font-medium text-sm"
                 >
                   Confirmar senha
                 </label>
+
                 <div className="relative">
                   <Input
-                    className="w-full"
+                    id="confirm_new_password"
                     type={showPassword ? 'text' : 'password'}
-                    id="confirm_password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    className="w-full"
                   />
 
                   {showPassword ? (
@@ -153,7 +257,13 @@ export function UpdateProfile({ open, setOpen }: UpdateProfileProps) {
               </div>
 
               <div className="flex justify-end gap-2">
-                <Button className="bg-yellow-500 text-zinc-950">Salvar</Button>
+                <Button
+                  type="submit"
+                  disabled={!passwordIsDirty}
+                  className="bg-yellow-500 text-zinc-950 disabled:bg-zinc-600"
+                >
+                  Salvar
+                </Button>
               </div>
             </form>
           </div>

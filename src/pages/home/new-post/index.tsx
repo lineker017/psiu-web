@@ -1,5 +1,5 @@
 import { HTTPError } from 'ky'
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/button'
@@ -13,8 +13,8 @@ export function NewPost() {
   const [open, setOpen] = useState(false)
   const [content, setContent] = useState('')
 
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
+  const handleOpen = useCallback(() => setOpen(true), [])
+  const handleClose = useCallback(() => setOpen(false), [])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -34,10 +34,28 @@ export function NewPost() {
       if (error instanceof HTTPError) {
         const { message } = await error.response.json()
 
-        return { result: 'error', message }
+        toast.error(message)
       }
     }
   }
+
+  const handleEsc = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        event.stopPropagation()
+        handleClose()
+      }
+    },
+    [open, handleClose],
+  )
+
+  useEffect(() => {
+    if (open) document.addEventListener('keydown', handleEsc)
+
+    return () => {
+      document.removeEventListener('keydown', handleEsc)
+    }
+  }, [open, handleEsc])
 
   return (
     <div>
@@ -50,7 +68,7 @@ export function NewPost() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-[576px] h-96 rounded-lg bg-zinc-800"
+            className="w-1/2 h-96 rounded-lg bg-zinc-800"
           >
             <div className="bg-zinc-900 p-3 rounded-t-lg">
               <h1 className="text-zinc-300 text-sm font-semibold text-center">
@@ -80,7 +98,7 @@ export function NewPost() {
 
               <div className="flex justify-end py-4 px-3">
                 <Button
-                  className="bg-zinc-900 disabled:bg-zinc-700 disabled:cursor-not-allowed"
+                  className="bg-yellow-500 text-zinc-950 disabled:bg-zinc-700 disabled:cursor-not-allowed"
                   disabled={!content}
                 >
                   Publicar
