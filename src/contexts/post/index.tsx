@@ -66,13 +66,25 @@ const PostProvider = ({ children }: PostProviderProps) => {
   const [posts, setPosts] = useState<IPost[]>([])
   const [postsByStudent, setPostsByStudent] = useState<IPost[]>([])
 
+  console.log(posts)
+
+  const [page, setPage] = useState(1)
+  const [last, setLast] = useState(0)
+
+  const onLoadMore = useCallback(() => {
+    setPage((prev) => prev + 1)
+  }, [])
+
   const fetchPosts = useCallback(async () => {
-    const { result, data } = await getPosts()
+    const { result, data, last } = await getPosts({ _page: page })
 
     if (result === 'success') {
-      if (data) setPosts(data)
+      if (data && last) {
+        setPosts((prev) => [...prev, ...data])
+        setLast(last)
+      }
     }
-  }, [])
+  }, [page])
 
   const fetchPostsByStudent = useCallback(async () => {
     if (student) {
@@ -86,6 +98,8 @@ const PostProvider = ({ children }: PostProviderProps) => {
     }
   }, [student])
 
+  console.log(posts)
+
   useEffect(() => {
     fetchPosts()
     fetchPostsByStudent()
@@ -93,15 +107,15 @@ const PostProvider = ({ children }: PostProviderProps) => {
 
   const onCreatePost = useCallback(
     async ({ content }: CreatePostRequest): Promise<CreatePostResponse> => {
-      const { result, message } = await createPost({ content })
+      const { result, message, data } = await createPost({ content })
 
-      if (result === 'success') {
-        await fetchPosts()
+      if (data && result === 'success') {
+        setPosts((prev) => [data.post, ...prev])
       }
 
-      return { result, message }
+      return { result, message, data }
     },
-    [fetchPosts],
+    [],
   )
 
   const onUpdatePost = useCallback(
@@ -109,15 +123,17 @@ const PostProvider = ({ children }: PostProviderProps) => {
       postId,
       content,
     }: UpdatePostRequest): Promise<UpdatePostResponse> => {
-      const { result, message } = await updatePost({ postId, content })
+      const { result, message, data } = await updatePost({ postId, content })
 
-      if (result === 'success') {
-        await fetchPosts()
+      if (data && result === 'success') {
+        setPosts((prev) =>
+          prev.map((post) => (post.id === postId ? data.post : post)),
+        )
       }
 
-      return { result, message }
+      return { result, message, data }
     },
-    [fetchPosts],
+    [],
   )
 
   const onDeletePost = useCallback(
@@ -125,12 +141,12 @@ const PostProvider = ({ children }: PostProviderProps) => {
       const { result, message } = await deletePost({ postId })
 
       if (result === 'success') {
-        await fetchPosts()
+        setPosts((prev) => prev.filter((post) => post.id !== postId))
       }
 
       return { result, message }
     },
-    [fetchPosts],
+    [],
   )
 
   const onCreateComment = useCallback(
@@ -138,15 +154,21 @@ const PostProvider = ({ children }: PostProviderProps) => {
       postId,
       content,
     }: CreateCommentRequest): Promise<CreateCommentResponse> => {
-      const { result, message } = await createComment({ postId, content })
+      const { result, message, data } = await createComment({ postId, content })
 
-      if (result === 'success') {
-        await fetchPosts()
+      if (data && result === 'success') {
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? { ...post, comments: [data.comment, ...post.comments] }
+              : post,
+          ),
+        )
       }
 
-      return { result, message }
+      return { result, message, data }
     },
-    [fetchPosts],
+    [],
   )
 
   const onDeleteComment = useCallback(
@@ -156,12 +178,19 @@ const PostProvider = ({ children }: PostProviderProps) => {
       const { result, message } = await deleteComment({ commentId })
 
       if (result === 'success') {
-        await fetchPosts()
+        setPosts((prev) =>
+          prev.map((post) => ({
+            ...post,
+            comments: post.comments.filter(
+              (comment) => comment.id !== commentId,
+            ),
+          })),
+        )
       }
 
       return { result, message }
     },
-    [fetchPosts],
+    [],
   )
 
   const onCreatePostReaction = useCallback(
@@ -169,15 +198,24 @@ const PostProvider = ({ children }: PostProviderProps) => {
       postId,
       type,
     }: CreatePostReactionRequest): Promise<CreatePostReactionResponse> => {
-      const { result, message } = await createPostReaction({ postId, type })
+      const { result, message, data } = await createPostReaction({
+        postId,
+        type,
+      })
 
-      if (result === 'success') {
-        await fetchPosts()
+      if (data && result === 'success') {
+        setPosts((prev) =>
+          prev.map((post) =>
+            post.id === postId
+              ? { ...post, reactions: [data.reaction, ...post.reactions] }
+              : post,
+          ),
+        )
       }
 
-      return { result, message }
+      return { result, message, data }
     },
-    [fetchPosts],
+    [],
   )
 
   const onDeletePostReaction = useCallback(
@@ -187,12 +225,19 @@ const PostProvider = ({ children }: PostProviderProps) => {
       const { result, message } = await deletePostReaction({ reactionId })
 
       if (result === 'success') {
-        await fetchPosts()
+        setPosts((prev) =>
+          prev.map((post) => ({
+            ...post,
+            reactions: post.reactions.filter(
+              (reaction) => reaction.id !== reactionId,
+            ),
+          })),
+        )
       }
 
       return { result, message }
     },
-    [fetchPosts],
+    [],
   )
 
   const onCreateCommentReaction = useCallback(
@@ -200,18 +245,30 @@ const PostProvider = ({ children }: PostProviderProps) => {
       commentId,
       type,
     }: CreateCommentReactionRequest): Promise<CreateCommentReactionResponse> => {
-      const { result, message } = await createCommentReaction({
+      const { result, message, data } = await createCommentReaction({
         commentId,
         type,
       })
 
-      if (result === 'success') {
-        await fetchPosts()
+      if (data && result === 'success') {
+        setPosts((prev) =>
+          prev.map((post) => ({
+            ...post,
+            comments: post.comments.map((comment) =>
+              comment.id === commentId
+                ? {
+                  ...comment,
+                  reactions: [data.reaction, ...comment.reactions],
+                }
+                : comment,
+            ),
+          })),
+        )
       }
 
-      return { result, message }
+      return { result, message, data }
     },
-    [fetchPosts],
+    [],
   )
 
   const onDeleteCommentReaction = useCallback(
@@ -221,12 +278,22 @@ const PostProvider = ({ children }: PostProviderProps) => {
       const { result, message } = await deleteCommentReaction({ reactionId })
 
       if (result === 'success') {
-        await fetchPosts()
+        setPosts((prev) =>
+          prev.map((post) => ({
+            ...post,
+            comments: post.comments.map((comment) => ({
+              ...comment,
+              reactions: comment.reactions.filter(
+                (reaction) => reaction.id !== reactionId,
+              ),
+            })),
+          })),
+        )
       }
 
       return { result, message }
     },
-    [fetchPosts],
+    [],
   )
 
   return (
@@ -234,6 +301,9 @@ const PostProvider = ({ children }: PostProviderProps) => {
       value={{
         posts,
         postsByStudent,
+        page,
+        last,
+        onLoadMore,
         onCreatePost,
         onUpdatePost,
         onDeletePost,
